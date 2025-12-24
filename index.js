@@ -134,10 +134,6 @@ app.get("/Skills", (req, res, next) => {
     });
 });
 
-
-
-
-
 app.get("/Responses/:id", (req, res, next) => {
     var params = [req.params.id]
     db.get("Select * From Posts where id = ?", params, (err, row) => {
@@ -170,5 +166,3 @@ app.delete("/Posts/:Post_id", (req, res, next) => {
     });
 });
 
-// Export for Vercel
-export default app;
