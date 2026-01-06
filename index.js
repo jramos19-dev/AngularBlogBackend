@@ -32,6 +32,7 @@ const db = new sqlite3.Database('./blog_db.db', (err) => {
         // Create Posts table
         db.run('CREATE TABLE IF NOT EXISTS Posts (\
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, \
+                store_id INTEGER, \
                 msg NVARCHAR(2000) NOT NULL, \
                 likes INTEGER, \
                 responses INTEGER, \
@@ -48,6 +49,7 @@ const db = new sqlite3.Database('./blog_db.db', (err) => {
         // Create Responses table
         db.run('CREATE TABLE IF NOT EXISTS Responses (\
             id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, \
+            store_id INTEGER, \
             post_id INTEGER, \
             Response_msg NVARCHAR(2000) NOT NULL\
         )', (err) => {
@@ -61,6 +63,7 @@ const db = new sqlite3.Database('./blog_db.db', (err) => {
         // Create Skills table
         db.run('CREATE TABLE IF NOT EXISTS Skills (\
             id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, \
+            store_id INTEGER, \
             name NVARCHAR(100) NOT NULL, \
             description NVARCHAR(500) NOT NULL\
         )', (err) => {
@@ -93,6 +96,67 @@ const db = new sqlite3.Database('./blog_db.db', (err) => {
                         });
                         stmt.finalize(() => {
                             console.log("Skills data inserted successfully");
+                        });
+                    }
+                });
+            }
+        });
+
+        // Migration: Add store_id to existing tables and set default value
+        db.get("PRAGMA table_info(Posts)", (err, row) => {
+            if (!err) {
+                db.all("PRAGMA table_info(Posts)", (err, columns) => {
+                    const hasStoreId = columns.some(col => col.name === 'store_id');
+                    if (!hasStoreId) {
+                        db.run("ALTER TABLE Posts ADD COLUMN store_id INTEGER", (err) => {
+                            if (err) {
+                                console.error("ERROR adding store_id to Posts: " + err.message);
+                            } else {
+                                console.log("Added store_id to Posts table");
+                                db.run("UPDATE Posts SET store_id = 1 WHERE store_id IS NULL", (err) => {
+                                    if (!err) console.log("Set default store_id=1 for existing Posts");
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        db.get("PRAGMA table_info(Responses)", (err, row) => {
+            if (!err) {
+                db.all("PRAGMA table_info(Responses)", (err, columns) => {
+                    const hasStoreId = columns.some(col => col.name === 'store_id');
+                    if (!hasStoreId) {
+                        db.run("ALTER TABLE Responses ADD COLUMN store_id INTEGER", (err) => {
+                            if (err) {
+                                console.error("ERROR adding store_id to Responses: " + err.message);
+                            } else {
+                                console.log("Added store_id to Responses table");
+                                db.run("UPDATE Responses SET store_id = 1 WHERE store_id IS NULL", (err) => {
+                                    if (!err) console.log("Set default store_id=1 for existing Responses");
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        db.get("PRAGMA table_info(Skills)", (err, row) => {
+            if (!err) {
+                db.all("PRAGMA table_info(Skills)", (err, columns) => {
+                    const hasStoreId = columns.some(col => col.name === 'store_id');
+                    if (!hasStoreId) {
+                        db.run("ALTER TABLE Skills ADD COLUMN store_id INTEGER", (err) => {
+                            if (err) {
+                                console.error("ERROR adding store_id to Skills: " + err.message);
+                            } else {
+                                console.log("Added store_id to Skills table");
+                                db.run("UPDATE Skills SET store_id = 1 WHERE store_id IS NULL", (err) => {
+                                    if (!err) console.log("Set default store_id=1 for existing Skills");
+                                });
+                            }
                         });
                     }
                 });
